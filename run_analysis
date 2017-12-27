@@ -1,0 +1,40 @@
+library(dplyr) 
+
+#load data sets, labels, and features
+x_train <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/train/X_train.txt")
+y_train <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/train/Y_train.txt")
+subject_train <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/train/subject_train.txt")
+
+x_test <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/test/x_test.txt")
+y_test <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/test/y_test.txt")
+subject_test <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/test/subject_test.txt")
+
+activities <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/activity_labels.txt")
+features <- read.table("../Desktop/Coursera/Course #3/UCI HAR Dataset/features.txt")
+
+#assign colnames to activity and subject data
+colnames(y_train) <- "activityId"
+colnames(y_test) <- "activityId"
+colnames(subject_train) <- "subjectId"
+colnames(subject_test) <- "subjectId"
+  
+#merge datasets
+train <- cbind(y_train, subject_train, x_train)
+test <- cbind(y_test, subject_test, x_test)
+all_data <- rbind(train, test)
+
+#identify features with mean or standard deviation 
+features_mean_sd <- grep("-(mean|std)", features[, 2], value = T)
+
+#add labels
+colnames(all_data) <- c("subjectId", "activityId", features_mean_sd)
+
+#add activity label 
+colnames(activities) <- c("activityId","activity")
+all_data1 <- merge(x = all_data, y = activities, by = "activityId", all = T)
+
+#create independent dataset with averages
+data_avg <- aggregate(. ~subjectId + activity, data = all_data1, FUN = mean)
+data_avg <- data_avg %>% select(-activityId)
+
+
